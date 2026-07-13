@@ -1,0 +1,441 @@
+/* 2D Potential Flow Simulator - Custom CSS Stylesheet */
+/* Theme: Strict Black and White, Zero Border-Radius, Pixel Typography */
+
+/* --- Fonts & Base Reset --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 !important; /* Force zero border-radius everywhere */
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #ffffff;
+  color: #000000;
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+}
+
+/* --- App Layout --- */
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 360px;
+  height: 100%;
+  background: #ffffff;
+  border-right: 4px solid #000000;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform 0.2s ease-out;
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 4px solid #000000;
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.sidebar-header h1 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.sidebar-header .subtitle {
+  font-size: 14px;
+  margin-top: 5px;
+  letter-spacing: 2px;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Custom Pixel Scrollbar for Sidebar */
+.sidebar-content::-webkit-scrollbar {
+  width: 12px;
+}
+.sidebar-content::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-left: 2px solid #000000;
+}
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: #000000;
+  border: 2px solid #ffffff;
+}
+
+.sidebar-footer {
+  padding: 15px;
+  border-top: 4px solid #000000;
+  background: #ffffff;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* --- Control Sections --- */
+.control-section {
+  margin-bottom: 25px;
+}
+
+.control-section h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.control-group {
+  margin-bottom: 12px;
+}
+
+/* --- Custom Inputs & Controls --- */
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.input-row label {
+  font-weight: bold;
+}
+
+input[type="number"], select, .pixel-select {
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  padding: 3px 6px;
+  width: 100px;
+  text-align: right;
+  outline: none;
+}
+
+input[type="number"]:focus, select:focus, .pixel-select:focus {
+  background: #000000;
+  color: #ffffff;
+}
+
+.pixel-hr {
+  border: none;
+  border-top: 2px dashed #000000;
+  margin: 12px 0;
+}
+
+/* --- Checkboxes & Radios --- */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+}
+
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.custom-checkbox {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  margin-right: 10px;
+  position: relative;
+}
+
+.checkbox-container:hover input ~ .custom-checkbox {
+  background-color: #f0f0f0;
+}
+
+.checkbox-container input:checked ~ .custom-checkbox {
+  background-color: #000000;
+}
+
+.checkbox-container input:checked ~ .custom-checkbox::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 8px;
+  height: 8px;
+  background-color: #ffffff;
+}
+
+.sub-inputs {
+  padding-left: 28px;
+  margin-top: 8px;
+}
+
+/* Radio buttons */
+.radio-group {
+  display: flex;
+  gap: 15px;
+}
+
+.radio-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.custom-radio {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  margin-right: 6px;
+  position: relative;
+}
+
+.radio-container input:checked ~ .custom-radio {
+  background-color: #000000;
+}
+
+.radio-container input:checked ~ .custom-radio::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 6px;
+  height: 6px;
+  background-color: #ffffff;
+}
+
+/* --- Buttons --- */
+.pixel-btn {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+  padding: 4px 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+}
+
+.pixel-btn:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.pixel-btn:active {
+  background: #000000;
+  color: #ffffff;
+  border-style: dotted; /* slight visual change when clicked */
+}
+
+/* --- Sidebar Toggle Button --- */
+#sidebar-toggle {
+  position: absolute;
+  top: 20px;
+  left: 360px;
+  z-index: 11;
+  width: 32px;
+  height: 32px;
+  border-left: none;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.2s ease-out;
+}
+
+#sidebar-toggle.closed {
+  left: 0;
+  border-left: 2px solid #000000;
+}
+
+/* --- Element List Section --- */
+.element-list {
+  border: 2px solid #000000;
+  background: #ffffff;
+  min-height: 120px;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.element-item {
+  border-bottom: 2px solid #000000;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.element-item.active-drag {
+  background: #f0f0f0;
+}
+
+.element-item:last-child {
+  border-bottom: none;
+}
+
+.element-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.element-name-input {
+  border: none;
+  border-bottom: 1px dashed #000000;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  width: 120px;
+  background: transparent;
+  outline: none;
+  font-weight: bold;
+}
+
+.element-name-input:focus {
+  border-bottom: 2px solid #000000;
+}
+
+.element-type-badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  border: 1px solid #000000;
+  padding: 2px 4px;
+  background: #000000;
+  color: #ffffff;
+}
+
+.btn-delete {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  padding: 1px 4px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.element-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.element-prop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.element-prop-row label {
+  font-size: 14px;
+}
+
+.element-prop-row input {
+  font-size: 16px;
+  width: 70px;
+  padding: 1px 4px;
+}
+
+.add-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.add-row {
+  display: flex;
+  gap: 6px;
+}
+
+.pixel-select {
+  flex: 1;
+  text-align: left;
+}
+
+#add-element-btn {
+  width: 80px;
+}
+
+/* --- Canvas Container & Canvas --- */
+#canvas-container {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  background-color: #ffffff;
+}
+
+#flow-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* --- Zoom Controls (Bottom Right) --- */
+#zoom-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#zoom-controls .pixel-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-width: 3px;
+  font-family: 'Press Start 2P', monospace;
+}
