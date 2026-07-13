@@ -43,12 +43,18 @@ const uiState = {
   dragOffset: { x: 0, y: 0 },
   hoveredElement: null,
   sidebarOpen: true,
-  spacePressed: false
+  spacePressed: false,
+  shiftPressed: false
 };
 
 // Global Uniform Flow
 let globalU = 1.0;
 let globalAlpha = 0; // in radians
+let fluidDensity = 1.225; // default density of air at sea level (kg/m^3)
+
+// Mouse tracking coordinates
+let mouseMathPos = { x: 0, y: 0 };
+let mouseScreenPos = { x: 0, y: 0 };
 
 // --- DOM References ---
 const canvas = document.getElementById('flow-canvas');
@@ -80,12 +86,25 @@ const stagnationColorRadios = document.getElementsByName('stagnation-color');
 const globalUInput = document.getElementById('global-u');
 const globalAlphaInput = document.getElementById('global-alpha');
 
+// New Fluid Property Inputs
+const fluidDensityInput = document.getElementById('fluid-density');
+
+// New Cursor dynamics readouts
+const readoutX = document.getElementById('readout-x');
+const readoutY = document.getElementById('readout-y');
+const readoutVel = document.getElementById('readout-vel');
+const readoutDp = document.getElementById('readout-dp');
+
 const addElementBtn = document.getElementById('add-element-btn');
 const elementTypeSelect = document.getElementById('element-type-select');
 
 const zoomInBtn = document.getElementById('zoom-in');
 const zoomOutBtn = document.getElementById('zoom-out');
 const zoomResetBtn = document.getElementById('zoom-reset');
+
+// System config Save/Load buttons
+const saveConfigBtn = document.getElementById('save-config-btn');
+const loadConfigInput = document.getElementById('load-config-input');
 
 // --- Coordinate Conversions ---
 function mathToScreen(x, y) {
@@ -626,6 +645,48 @@ function draw() {
     ctx.font = '14px "VT323"';
     ctx.fillText(el.name, sp.x, sp.y - 16);
   }
+  
+  // 9. Draw cursor pressure difference information popup overlay (when Shift is held)
+  if (uiState.shiftPressed && mouseScreenPos.x >= 0 && mouseScreenPos.x <= canvas.width && mouseScreenPos.y >= 0 && mouseScreenPos.y <= canvas.height) {
+    const vel = getVelocity(mouseMathPos.x, mouseMathPos.y);
+    const V = Math.sqrt(vel.u * vel.u + vel.v * vel.v);
+    const dp = 0.5 * fluidDensity * (globalU * globalU - V * V);
+    
+    // Draw popup overlay at mouse coordinates
+    const boxW = 140;
+    const boxH = 80;
+    
+    // Position overlay offset from cursor to keep cursor visible
+    let px = mouseScreenPos.x + 15;
+    let py = mouseScreenPos.y + 15;
+    
+    // Keep within canvas viewport boundaries
+    if (px + boxW > canvas.width) {
+      px = mouseScreenPos.x - boxW - 10;
+    }
+    if (py + boxH > canvas.height) {
+      py = mouseScreenPos.y - boxH - 10;
+    }
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    
+    // Zero-radius info rectangle
+    ctx.fillRect(px, py, boxW, boxH);
+    ctx.strokeRect(px, py, boxW, boxH);
+    
+    // Draw pixel text inside box
+    ctx.fillStyle = '#000000';
+    ctx.font = '18px "VT323"';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    
+    ctx.fillText(`X:  ${mouseMathPos.x.toFixed(2)}`, px + 8, py + 8);
+    ctx.fillText(`Y:  ${mouseMathPos.y.toFixed(2)}`, px + 8, py + 25);
+    ctx.fillText(`V:  ${V.toFixed(2)} m/s`, px + 8, py + 42);
+    ctx.fillText(`DP: ${dp.toFixed(2)} Pa`, px + 8, py + 59);
+  }
 }
 
 // --- Render Request Queue ---
@@ -802,6 +863,17 @@ stagnationColorRadios.forEach(radio => {
   });
 });
 
+// 2.2 Fluid properties listener
+fluidDensityInput.addEventListener('input', () => {
+  const val = parseFloat(fluidDensityInput.value);
+  if (!isNaN(val) && val > 0) {
+    fluidDensity = val;
+    // Update readout in case mouse is currently on screen
+    updateCursorReadout();
+    queueRender();
+  }
+});
+
 // 3. Global Flow variables
 globalUInput.addEventListener('input', () => {
   const val = parseFloat(globalUInput.value);
@@ -893,7 +965,7 @@ zoomInBtn.addEventListener('click', () => adjustZoom(1.2));
 zoomOutBtn.addEventListener('click', () => adjustZoom(1 / 1.2));
 zoomResetBtn.addEventListener('click', () => adjustZoom(1, true));
 
-// 6. Keyboard Listeners (Spacebar)
+// 6. Keyboard Listeners (Spacebar & Shift key)
 window.addEventListener('keydown', e => {
   if (e.code === 'Space') {
     uiState.spacePressed = true;
@@ -901,6 +973,9 @@ window.addEventListener('keydown', e => {
       e.preventDefault(); // Prevent scroll down
       canvas.style.cursor = 'grab';
     }
+  } else if (e.key === 'Shift') {
+    uiState.shiftPressed = true;
+    queueRender();
   }
 });
 
@@ -908,6 +983,9 @@ window.addEventListener('keyup', e => {
   if (e.code === 'Space') {
     uiState.spacePressed = false;
     canvas.style.cursor = 'crosshair';
+  } else if (e.key === 'Shift') {
+    uiState.shiftPressed = false;
+    queueRender();
   }
 });
 
@@ -976,10 +1054,27 @@ canvas.addEventListener('mousedown', e => {
   }
 });
 
+function updateCursorReadout() {
+  readoutX.innerText = mouseMathPos.x.toFixed(3);
+  readoutY.innerText = mouseMathPos.y.toFixed(3);
+  const vel = getVelocity(mouseMathPos.x, mouseMathPos.y);
+  const V = Math.sqrt(vel.u * vel.u + vel.v * vel.v);
+  readoutVel.innerText = V.toFixed(3) + ' m/s';
+  const dp = 0.5 * fluidDensity * (globalU * globalU - V * V);
+  readoutDp.innerText = dp.toFixed(3) + ' Pa';
+}
+
 canvas.addEventListener('mousemove', e => {
   const rect = canvas.getBoundingClientRect();
   const sx = e.clientX - rect.left;
   const sy = e.clientY - rect.top;
+  
+  // Update mouse positions
+  mouseScreenPos.x = sx;
+  mouseScreenPos.y = sy;
+  mouseMathPos = screenToMath(sx, sy);
+  
+  updateCursorReadout();
   
   if (uiState.panning) {
     const dx = e.clientX - uiState.panStart.x;
@@ -1024,6 +1119,11 @@ canvas.addEventListener('mousemove', e => {
     } else {
       canvas.style.cursor = uiState.spacePressed ? 'grab' : 'crosshair';
     }
+    
+    // If Shift key is held, force re-render to redraw pressure overlay
+    if (uiState.shiftPressed) {
+      queueRender();
+    }
   }
 });
 
@@ -1051,6 +1151,13 @@ canvas.addEventListener('mouseleave', () => {
     uiState.draggingElement = null;
   }
   uiState.hoveredElement = null;
+  
+  // Clear readout
+  readoutX.innerText = '---';
+  readoutY.innerText = '---';
+  readoutVel.innerText = '--- m/s';
+  readoutDp.innerText = '--- Pa';
+  
   queueRender();
 });
 
@@ -1063,6 +1170,107 @@ canvas.addEventListener('dblclick', e => {
   const mathPos = screenToMath(sx, sy);
   const type = elementTypeSelect.value;
   addElement(type, mathPos.x, mathPos.y);
+});
+
+// 8. System Config Save/Load Listeners
+saveConfigBtn.addEventListener('click', () => {
+  const state = {
+    elements: elements,
+    globalU: globalU,
+    globalAlpha: globalAlpha,
+    viewport: viewport,
+    displayOptions: displayOptions,
+    fluidDensity: fluidDensity
+  };
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'flow_state.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+loadConfigInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const state = JSON.parse(evt.target.result);
+      
+      // Load and validate keys
+      if (state.elements && Array.isArray(state.elements)) {
+        elements.length = 0;
+        state.elements.forEach(el => elements.push(el));
+        
+        // Find max ID to keep nextElementId safe
+        let maxId = 0;
+        elements.forEach(el => { if (el.id > maxId) maxId = el.id; });
+        nextElementId = maxId + 1;
+      }
+      
+      if (typeof state.globalU === 'number') {
+        globalU = state.globalU;
+        globalUInput.value = globalU;
+      }
+      
+      if (typeof state.globalAlpha === 'number') {
+        globalAlpha = state.globalAlpha;
+        globalAlphaInput.value = Math.round((globalAlpha * 180) / Math.PI);
+      }
+      
+      if (typeof state.fluidDensity === 'number') {
+        fluidDensity = state.fluidDensity;
+        fluidDensityInput.value = fluidDensity;
+      }
+      
+      if (state.viewport) {
+        if (typeof state.viewport.centerX === 'number') viewport.centerX = state.viewport.centerX;
+        if (typeof state.viewport.centerY === 'number') viewport.centerY = state.viewport.centerY;
+        if (typeof state.viewport.scale === 'number') viewport.scale = state.viewport.scale;
+      }
+      
+      if (state.displayOptions) {
+        Object.keys(state.displayOptions).forEach(k => {
+          displayOptions[k] = state.displayOptions[k];
+        });
+        
+        // Sync Display Options UI
+        toggleStream.checked = displayOptions.streamfunctions;
+        streamInputs.style.display = displayOptions.streamfunctions ? 'block' : 'none';
+        streamOffsetInput.value = displayOptions.streamOffset;
+        streamSpacingInput.value = displayOptions.streamSpacing;
+        
+        togglePotential.checked = displayOptions.potentials;
+        potentialInputs.style.display = displayOptions.potentials ? 'block' : 'none';
+        potentialOffsetInput.value = displayOptions.potentialOffset;
+        potentialSpacingInput.value = displayOptions.potentialSpacing;
+        
+        toggleVectors.checked = displayOptions.vectors;
+        vectorInputs.style.display = displayOptions.vectors ? 'block' : 'none';
+        vectorGridInput.value = displayOptions.vectorGrid;
+        vectorScaleInput.value = displayOptions.vectorScale;
+        
+        toggleStagnation.checked = displayOptions.stagnation;
+        stagnationInputs.style.display = displayOptions.stagnation ? 'block' : 'none';
+        stagnationColorRadios.forEach(radio => {
+          radio.checked = (radio.value === displayOptions.stagnationColor);
+        });
+      }
+      
+      updateElementListUI();
+      queueRender();
+      
+    } catch (err) {
+      alert('Error parsing config file: ' + err.message);
+    }
+    // Clear input so same file can be selected again
+    loadConfigInput.value = '';
+  };
+  reader.readAsText(file);
 });
 
 // --- Initial Startup ---

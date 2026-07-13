@@ -439,3 +439,68 @@ input[type="number"]:focus, select:focus, .pixel-select:focus {
   border-width: 3px;
   font-family: 'Press Start 2P', monospace;
 }
+
+/* --- Readout Box & System Config Styles --- */
+.readout-box {
+  border: 2px solid #000000;
+  background: #ffffff;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.readout-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.readout-label {
+  color: #000000;
+}
+
+.readout-val {
+  color: #000000;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.system-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width-btn {
+  width: 100%;
+  text-align: center;
+  padding: 6px 10px;
+}
+
+.pixel-btn-label {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+  padding: 6px 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pixel-btn-label:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.pixel-btn-label:active {
+  background: #000000;
+  color: #ffffff;
+  border-style: dotted;
+}
+
